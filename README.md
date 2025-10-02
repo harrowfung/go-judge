@@ -6,6 +6,10 @@
 
 Fast, Simple, Secure
 
+## Language Bindings
+
+- **Rust**: Rust FFI bindings are available in this repository. See [RUST_README.md](RUST_README.md) for details.
+
 ## Quick Start
 
 ### Install & Run
