@@ -1,0 +1,106 @@
+# Makefile for building go-judge Rust FFI bindings
+#
+# Usage:
+#   make -f Makefile.rust all          - Build everything
+#   make -f Makefile.rust ffi          - Build the Go FFI library
+#   make -f Makefile.rust rust         - Build the Rust bindings
+#   make -f Makefile.rust example      - Run the example
+#   make -f Makefile.rust test         - Run tests
+#   make -f Makefile.rust clean        - Clean build artifacts
+
+.PHONY: all ffi rust example test clean help
+
+# Go FFI library name
+FFI_LIB = libgojudge.so
+FFI_HEADER = libgojudge.h
+
+# Rust library paths
+CARGO = cargo
+RUSTC_FLAGS = 
+
+all: ffi rust
+
+# Build the Go FFI library
+ffi:
+	@echo "Building Go FFI library..."
+	CGO_ENABLED=1 go build -buildmode=c-shared -o $(FFI_LIB) ./cmd/go-judge-ffi
+	@echo "✓ Built $(FFI_LIB) and $(FFI_HEADER)"
+
+# Build the Rust bindings
+rust:
+	@echo "Building Rust bindings..."
+	$(CARGO) build --release
+	@echo "✓ Built Rust library"
+
+# Build and check (faster than full build)
+check:
+	@echo "Checking Rust code..."
+	$(CARGO) check
+	@echo "✓ Rust code is valid"
+
+# Run the Rust example (requires FFI library)
+example: ffi
+	@echo "Running example..."
+	LD_LIBRARY_PATH=. $(CARGO) run --example basic
+
+# Run tests
+test: 
+	@echo "Running unit tests..."
+	$(CARGO) test --lib
+	@echo "✓ Unit tests passed"
+
+# Run integration tests (requires FFI library)
+test-integration: ffi
+	@echo "Running integration tests..."
+	LD_LIBRARY_PATH=. $(CARGO) test -- --ignored
+	@echo "✓ Integration tests passed"
+
+# Generate documentation
+docs:
+	@echo "Generating Rust documentation..."
+	$(CARGO) doc --no-deps --open
+	@echo "✓ Documentation generated"
+
+# Format Rust code
+fmt:
+	@echo "Formatting Rust code..."
+	$(CARGO) fmt
+	@echo "✓ Code formatted"
+
+# Lint Rust code
+lint:
+	@echo "Linting Rust code..."
+	$(CARGO) clippy -- -D warnings
+	@echo "✓ Code linted"
+
+# Clean build artifacts
+clean:
+	@echo "Cleaning build artifacts..."
+	$(CARGO) clean
+	rm -f $(FFI_LIB) $(FFI_HEADER)
+	@echo "✓ Cleaned"
+
+# Install the FFI library to system
+install-ffi: ffi
+	@echo "Installing FFI library..."
+	sudo cp $(FFI_LIB) /usr/local/lib/
+	sudo ldconfig
+	@echo "✓ Installed $(FFI_LIB) to /usr/local/lib/"
+
+help:
+	@echo "go-judge Rust FFI Makefile"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all               - Build everything (Go FFI + Rust bindings)"
+	@echo "  ffi               - Build the Go FFI library"
+	@echo "  rust              - Build the Rust bindings"
+	@echo "  check             - Check Rust code (faster than build)"
+	@echo "  example           - Run the Rust example"
+	@echo "  test              - Run unit tests"
+	@echo "  test-integration  - Run integration tests (requires FFI library)"
+	@echo "  docs              - Generate and open documentation"
+	@echo "  fmt               - Format Rust code"
+	@echo "  lint              - Lint Rust code with clippy"
+	@echo "  clean             - Clean build artifacts"
+	@echo "  install-ffi       - Install FFI library to /usr/local/lib"
+	@echo "  help              - Show this help message"
