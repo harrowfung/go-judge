@@ -1,0 +1,7 @@
+[build]
+# Add the current directory to the library search path
+rustflags = ["-C", "link-args=-Wl,-rpath,$ORIGIN"]
+
+[target.x86_64-unknown-linux-gnu]
+# Ensure we link dynamically to libgojudge
+rustflags = ["-C", "link-args=-Wl,-rpath,$ORIGIN"]

@@ -19,3 +19,7 @@ path = "src/lib.rs"
 [[example]]
 name = "basic"
 path = "examples/basic.rs"
+
+[[example]]
+name = "compiler_test"
+path = "examples/compiler_test.rs"

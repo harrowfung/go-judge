@@ -13,7 +13,7 @@ fn test_init_parameter_serialization() {
         dir: Some("/tmp/test-judge".to_string()),
         ..Default::default()
     };
-    
+
     let json = serde_json::to_string(&params).unwrap();
     assert!(json.contains("parallelism"));
     assert!(json.contains("4"));
@@ -32,7 +32,7 @@ fn test_request_serialization() {
         }],
         ..Default::default()
     };
-    
+
     let json = serde_json::to_string(&request).unwrap();
     assert!(json.contains("test-1"));
     assert!(json.contains("/bin/echo"));
@@ -44,7 +44,7 @@ fn test_status_serialization() {
     let status = Status::Accepted;
     let json = serde_json::to_string(&status).unwrap();
     assert_eq!(json, "\"Accepted\"");
-    
+
     let status = Status::MemoryLimitExceeded;
     let json = serde_json::to_string(&status).unwrap();
     assert_eq!(json, "\"Memory Limit Exceeded\"");
@@ -59,7 +59,7 @@ fn test_basic_initialization() {
         dir: Some("/tmp/rust-test-judge".to_string()),
         ..Default::default()
     };
-    
+
     // This will fail if the library is not built or not in the path
     match judge.init(&params) {
         Ok(_) => println!("Initialization successful"),
@@ -71,28 +71,30 @@ fn test_basic_initialization() {
 #[ignore] // Ignore by default as it requires the FFI library and proper setup
 fn test_file_operations() {
     let mut judge = GoJudge::new();
-    judge.init(&InitParameter {
-        dir: Some("/tmp/rust-test-judge-files".to_string()),
-        ..Default::default()
-    }).expect("Failed to initialize");
-    
+    judge
+        .init(&InitParameter {
+            dir: Some("/tmp/rust-test-judge-files".to_string()),
+            ..Default::default()
+        })
+        .expect("Failed to initialize");
+
     // Add a file
     let content = b"Hello from Rust test!";
-    let file_id = judge.file_add(content, "test.txt")
+    let file_id = judge
+        .file_add(content, "test.txt")
         .expect("Failed to add file");
-    
+
     // Retrieve the file
-    let retrieved = judge.file_get(&file_id)
-        .expect("Failed to get file");
+    let retrieved = judge.file_get(&file_id).expect("Failed to get file");
     assert_eq!(retrieved, content);
-    
+
     // List files
     let files = judge.file_list().expect("Failed to list files");
     assert!(files.iter().any(|(id, _)| id == &file_id));
-    
+
     // Delete the file
     judge.file_delete(&file_id).expect("Failed to delete file");
-    
+
     // Verify it's deleted
     match judge.file_get(&file_id) {
         Err(e) => assert!(e.contains("does not exist")),

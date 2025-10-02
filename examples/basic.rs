@@ -6,7 +6,7 @@
 //! 3. Executing a simple command
 //! 4. Retrieving the results
 
-use go_judge_ffi_rust::{GoJudge, InitParameter, Request, Cmd, CmdFile};
+use go_judge_ffi_rust::{Cmd, CmdFile, GoJudge, InitParameter, Request};
 use std::collections::HashMap;
 
 fn main() {
@@ -37,8 +37,8 @@ fn main() {
         request_id: Some("example-1".to_string()),
         cmd: vec![Cmd {
             args: vec!["/bin/echo".to_string(), "Hello from Rust!".to_string()],
-            cpu_limit: Some(1_000_000_000),  // 1 second
-            memory_limit: Some(32 * 1024 * 1024),  // 32 MB
+            cpu_limit: Some(1_000_000_000),       // 1 second
+            memory_limit: Some(32 * 1024 * 1024), // 32 MB
             ..Default::default()
         }],
         ..Default::default()
@@ -62,7 +62,7 @@ fn main() {
 
     // Example 2: Execute a program with file input/output
     println!("\n--- Example 2: File Operations ---");
-    
+
     // Add a test file
     let test_content = b"Hello, World!\nThis is a test file.\n";
     match judge.file_add(test_content, "input.txt") {
@@ -82,10 +82,7 @@ fn main() {
             let request = Request {
                 request_id: Some("example-2".to_string()),
                 cmd: vec![Cmd {
-                    args: vec![
-                        "/bin/cat".to_string(),
-                        "/tmp/input.txt".to_string(),
-                    ],
+                    args: vec!["/bin/cat".to_string(), "/tmp/input.txt".to_string()],
                     cpu_limit: Some(1_000_000_000),
                     memory_limit: Some(32 * 1024 * 1024),
                     copy_in: Some(copy_in),

@@ -1,13 +1,13 @@
 //! Rust FFI bindings for go-judge sandbox
-//! 
+//!
 //! This crate provides safe Rust bindings to the go-judge FFI library,
 //! which enables running programs in a restricted sandbox environment.
-//! 
+//!
 //! # Example
-//! 
+//!
 //! ```no_run
 //! use go_judge_ffi_rust::{GoJudge, InitParameter, Request, Cmd};
-//! 
+//!
 //! // Initialize the sandbox
 //! let mut judge = GoJudge::new();
 //! let init_params = InitParameter {
@@ -15,7 +15,7 @@
 //!     ..Default::default()
 //! };
 //! judge.init(&init_params).expect("Failed to initialize");
-//! 
+//!
 //! // Execute a command
 //! let request = Request {
 //!     request_id: "test-1".to_string(),
@@ -25,7 +25,7 @@
 //!     }],
 //!     ..Default::default()
 //! };
-//! 
+//!
 //! let response = judge.exec(&request).expect("Failed to execute");
 //! println!("Response: {:?}", response);
 //! ```
@@ -46,18 +46,15 @@ pub struct GoJudge {
 impl GoJudge {
     /// Create a new GoJudge instance
     pub fn new() -> Self {
-        Self {
-            initialized: false,
-        }
+        Self { initialized: false }
     }
 
     /// Initialize the sandbox environment
     pub fn init(&mut self, params: &InitParameter) -> Result<(), String> {
         let json = serde_json::to_string(params)
             .map_err(|e| format!("Failed to serialize init parameters: {}", e))?;
-        
-        let c_json = CString::new(json)
-            .map_err(|e| format!("Failed to create CString: {}", e))?;
+
+        let c_json = CString::new(json).map_err(|e| format!("Failed to create CString: {}", e))?;
 
         let result = unsafe { ffi::Init(c_json.as_ptr() as *mut i8) };
 
@@ -77,9 +74,8 @@ impl GoJudge {
 
         let json = serde_json::to_string(request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
-        
-        let c_json = CString::new(json)
-            .map_err(|e| format!("Failed to create CString: {}", e))?;
+
+        let c_json = CString::new(json).map_err(|e| format!("Failed to create CString: {}", e))?;
 
         let result_ptr = unsafe { ffi::Exec(c_json.as_ptr() as *mut i8) };
 
@@ -88,7 +84,8 @@ impl GoJudge {
         }
 
         let c_str = unsafe { CStr::from_ptr(result_ptr) };
-        let result_json = c_str.to_str()
+        let result_json = c_str
+            .to_str()
             .map_err(|e| format!("Failed to convert result to string: {}", e))?;
 
         let response: Response = serde_json::from_str(result_json)
@@ -144,14 +141,13 @@ impl GoJudge {
             return Err("GoJudge not initialized".to_string());
         }
 
-        let c_name = CString::new(name)
-            .map_err(|e| format!("Failed to create CString: {}", e))?;
+        let c_name = CString::new(name).map_err(|e| format!("Failed to create CString: {}", e))?;
 
         let file_id_ptr = unsafe {
             ffi::FileAdd(
                 content.as_ptr() as *mut i8,
                 content.len() as i32,
-                c_name.as_ptr() as *mut i8
+                c_name.as_ptr() as *mut i8,
             )
         };
 
@@ -174,14 +170,12 @@ impl GoJudge {
             return Err("GoJudge not initialized".to_string());
         }
 
-        let c_file_id = CString::new(file_id)
-            .map_err(|e| format!("Failed to create CString: {}", e))?;
+        let c_file_id =
+            CString::new(file_id).map_err(|e| format!("Failed to create CString: {}", e))?;
 
         let mut out_ptr: *mut i8 = ptr::null_mut();
 
-        let len = unsafe {
-            ffi::FileGet(c_file_id.as_ptr() as *mut i8, &mut out_ptr)
-        };
+        let len = unsafe { ffi::FileGet(c_file_id.as_ptr() as *mut i8, &mut out_ptr) };
 
         if len < 0 {
             return Err(match len {
@@ -191,9 +185,8 @@ impl GoJudge {
             });
         }
 
-        let content = unsafe {
-            std::slice::from_raw_parts(out_ptr as *const u8, len as usize).to_vec()
-        };
+        let content =
+            unsafe { std::slice::from_raw_parts(out_ptr as *const u8, len as usize).to_vec() };
 
         // Free the buffer
         unsafe { libc::free(out_ptr as *mut libc::c_void) };
@@ -207,8 +200,8 @@ impl GoJudge {
             return Err("GoJudge not initialized".to_string());
         }
 
-        let c_file_id = CString::new(file_id)
-            .map_err(|e| format!("Failed to create CString: {}", e))?;
+        let c_file_id =
+            CString::new(file_id).map_err(|e| format!("Failed to create CString: {}", e))?;
 
         let result = unsafe { ffi::FileDelete(c_file_id.as_ptr() as *mut i8) };
 
